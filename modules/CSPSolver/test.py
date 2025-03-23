@@ -1,5 +1,13 @@
 # from . import CSPSolver
-from ..Formulation import Variaveis, Restricoes
+import sys
+import os
+
+# Adiciona o diretório CSPSolver ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'CSPSolver')))
+
+from CSPSolver import CSPSolver
+from variaveis import Variaveis
+from restricoes import Restricoes
 
 if __name__ == "__main__":
     # Criar variáveis e domínios

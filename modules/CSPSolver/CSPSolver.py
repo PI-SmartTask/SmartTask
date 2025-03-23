@@ -1,8 +1,12 @@
+import os
+import sys
 import time
 import csv
 import logging
 from typing import Dict, List, Optional, Any
-from modules.Formulation.Solver import Solver
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Formulation')))
+
+from Solver import Solver # Agora o python consegue encontrar o modulo Solver
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
