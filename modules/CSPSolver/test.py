@@ -40,13 +40,15 @@ if __name__ == "__main__":
                 lambda *turnos: sum(1 for turno in turnos if turno in ["M", "T"]) <= 5
             )
 
+
+
     # Restrição 3: M → M e T → T (sequências válidas)
     for f in funcionarios:
         for i in range(dias_no_ano - 1):
             restricoes_obj.adicionar_restricao_local(
                 f"Sequência válida M → M ou T → T - Funcionário {f}",
                 [f"X_{f}_{i}", f"X_{f}_{i + 1}"],
-                lambda *valores: (valores[0] == valores[1]) if valores[0] in ["M", "T"] else True
+                lambda *valores: valores[0] == valores[1] if valores[0] in ["M", "T"] else True
             )
 
     # Restrição 4: No máximo 223 dias de trabalho por ano

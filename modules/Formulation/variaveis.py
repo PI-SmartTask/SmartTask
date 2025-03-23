@@ -12,12 +12,11 @@ class Variaveis:
     def criar_variaveis(self, funcionarios: List[int], dias: int) -> Dict[str, List[str]]:
         """
         Cria variáveis X_{i,j} para cada funcionário i e cada dia j, com os domínios possíveis.
-        Exemplo de domínio: ["M", "T", "F"] (Manhã, Tarde, Folga).
+        Exemplo de domínio: ["M", "T", "F", "Fer"].
         """
         self.variaveis = {
-            f"X_{i}_{j}": ["M", "T", "F"]  # Manhã, Tarde, Folga
+            f"X_{i}_{j}": ["M", "T", "F", "Fer"]  # Manhã, Tarde, Folga, Férias
             for i in funcionarios
-            for j in range(dias)  # Agora j inicia em 0
+            for j in range(dias)
         }
-
         return self.variaveis
