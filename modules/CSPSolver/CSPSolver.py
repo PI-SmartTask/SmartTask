@@ -13,112 +13,87 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
-class CSPSolver(Solver):
-    """
-    Solver baseado em CSP (Constraint Satisfaction Problem).
-    Utiliza Backtracking básico com Forward Checking para encontrar uma solução.
-    """
 
-    def buscar_solucao(self, variaveis: Dict[str, List[str]], restricoes: List[Dict[str, Any]]) -> Optional[Dict[str, str]]:
-        inicio = time.time()  # Início do contador de tempo
+class CSPSolver:
+    def buscar_solucao(self, variaveis, restricoes):
+        """
+        Método principal que inicia o processo de busca para encontrar uma solução.
+        Args:
+            variaveis (dict): Variáveis e seus respectivos domínios.
+            restricoes (list): Lista de restrições a serem satisfeitas.
+        Returns:
+            dict or None: Uma solução que satisfaz todas as restrições ou None se nenhuma solução for encontrada.
+        """
+        restricoes_por_var = self._organizar_restricoes_por_variavel(restricoes)
+        atribuicao = {}
+        logging.info("Iniciando busca com propagação de restrições...")
+        return self._backtrack(variaveis, restricoes_por_var, atribuicao)
 
-        def forward_checking(var: str, valor: str, variaveis: Dict[str, List[str]], restricoes: List[Dict[str, Any]]) -> List[tuple]:
-            """
-            Remove valores inconsistentes do domínio das variáveis futuras após uma atribuição.
-            Retorna uma lista dos valores removidos para possível reversão.
-            """
-            removidos = []
-
-            for restricao in restricoes:
-                if var in restricao["variaveis"]:
-                    for outra_var in restricao["variaveis"]:
-                        if outra_var != var and outra_var in variaveis and len(variaveis[outra_var]) > 1:
-                            valores_a_remover = [v for v in variaveis[outra_var] if not self.verificar_consistencia({var: valor, outra_var: v}, [restricao])]
-                            for v in valores_a_remover:
-                                variaveis[outra_var].remove(v)
-                                removidos.append((outra_var, v))
-
-                            # Caso um domínio fique vazio, pare a verificação antecipadamente
-                            if not variaveis[outra_var]:
-                                return removidos
-
-            return removidos
-
-        def desfazer_forward_checking(removidos: List[tuple], variaveis: Dict[str, List[str]]):
-            """Reverte as remoções feitas pelo forward checking."""
-            for var, valor in removidos:
-                if valor not in variaveis[var]:
-                    variaveis[var].append(valor)
-
-        def backtrack(atual: Dict[str, str]) -> Optional[Dict[str, str]]:
-            # Verificar se a atribuição está completa
-            if len(atual) == len(variaveis):
-                logger.info("Solução completa encontrada!")
-                return atual
-
-            # Selecionar a próxima variável usando heurística de Menor Domínio (MRV)
-            var = self.selecionar_variavel_nao_atribuida(variaveis, atual)
-            logger.info(f"Selecionando variável não atribuída: {var}")
-
-            for valor in variaveis[var]:
-                logger.info(f"Tentando atribuir {valor} a {var}")
-                atual[var] = valor
-
-                if self.verificar_consistencia(atual, restricoes):
-                    logger.info(f"Atribuição consistente: {var} = {valor}")
-
-                    # Aplicar forward checking após a atribuição
-                    removidos = forward_checking(var, valor, variaveis, restricoes)
-
-                    if not any(not dominio for dominio in variaveis.values()):  # Continuar se todos os domínios têm valores
-                        resultado = backtrack(atual)
-                        if resultado:
-                            return resultado
-
-                    logger.info(f"Desfazendo remoções de forward checking após falha")
-                    desfazer_forward_checking(removidos, variaveis)
-
-                logger.info(f"Revertendo atribuição: {var} = {valor}")
-                del atual[var]  # Reverter atribuição
-
-            return None
-
-        solucao = backtrack({})
-
-        fim = time.time()
-        logger.info(f"Tempo total de execução: {fim - inicio:.2f} segundos")
-
-        if solucao:
-            self.salvar_solucao_csv(solucao)
-        else:
-            logger.warning("Nenhuma solução encontrada.")
-
-        return solucao
-
-    def salvar_solucao_csv(self, solucao: Dict[str, str], filename: str = "schedule_result.csv"):
-        """Salva a solução encontrada em um arquivo CSV no formato esperado."""
-        with open(filename, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Funcionário", "Dia", "Turno"])
-
-            for key, value in sorted(solucao.items()):
-                f, d = key.split('_')[1:]
-                writer.writerow([f, d, value])
-
-        logger.info(f"Solução salva em {filename}")
-
-    def selecionar_variavel_nao_atribuida(self, variaveis: Dict[str, List[str]], atual: Dict[str, str]) -> str:
-        """Seleciona a variável não atribuída usando uma heurística de menor domínio (MRV)."""
-        return min((v for v in variaveis if v not in atual), key=lambda x: len(variaveis[x]))
-
-    def verificar_consistencia(self, atual: Dict[str, str], restricoes: List[Dict[str, Any]]) -> bool:
-        """Verifica se a atribuição atual é consistente com as restrições."""
+    def _organizar_restricoes_por_variavel(self, restricoes):
+        """
+        Organiza as restrições por variável, para facilitar a busca.
+        Args:
+            restricoes (list): Lista de restrições.
+        Returns:
+            dict: Um dicionário com as variáveis como chaves e as restrições relacionadas como valores.
+        """
+        restricoes_por_var = {}
         for restricao in restricoes:
-            variaveis_restricao = restricao["variaveis"]
-            valores = [atual.get(var, None) for var in variaveis_restricao]
+            for var in restricao["variaveis"]:
+                if var not in restricoes_por_var:
+                    restricoes_por_var[var] = []
+                restricoes_por_var[var].append(restricao)
+        return restricoes_por_var
 
-            if all(valores) and not restricao["regra"](valores):
-                logger.info(f"Inconsistência detectada: {valores} falham na restrição {restricao.get('descricao', 'sem descrição')}")
-                return False
+    def _backtrack(self, variaveis, restricoes_por_var, atribuicao):
+        """
+        Implementa o algoritmo de backtracking.
+        """
+        if len(atribuicao) == len(variaveis):
+            return atribuicao
+
+        var = self._escolher_variavel_nao_atribuida(variaveis, atribuicao)
+        for valor in variaveis[var]:
+            if self._verificar_consistencia(var, valor, atribuicao, restricoes_por_var):
+                atribuicao[var] = valor
+                resultado = self._backtrack(variaveis, restricoes_por_var, atribuicao)
+                if resultado is not None:
+                    return resultado
+                del atribuicao[var]
+
+        return None
+
+    def _escolher_variavel_nao_atribuida(self, variaveis, atribuicao):
+        """
+        Escolhe a próxima variável não atribuída.
+        """
+        for var in variaveis.keys():
+            if var not in atribuicao:
+                return var
+        return None
+
+    def _verificar_consistencia(self, var, valor, atribuicao, restricoes_por_var):
+        """
+        Verifica se a atribuição atual é consistente com as restrições.
+        """
+        atribuicao_temporaria = atribuicao.copy()
+        atribuicao_temporaria[var] = valor
+
+        for restricao in restricoes_por_var.get(var, []):
+            funcao = restricao["regra"]
+            variaveis_da_restricao = restricao["variaveis"]
+
+            valores = [atribuicao_temporaria.get(v, None) for v in variaveis_da_restricao]
+
+            # Verificar se a quantidade de argumentos corresponde ao esperado na função
+            if None not in valores:
+                try:
+                    # Ajuste: usar a quantidade correta de argumentos
+                    if not funcao(*valores):
+                        return False
+                except TypeError as e:
+                    logging.error(f"Erro de argumentos na restrição '{restricao['nome']}': {e}")
+                    return False
 
         return True
+

@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     # Criar variáveis e domínios
     variaveis_obj = Variaveis()
-    funcionarios = list(range(1, 4))  # Exemplo: 3 funcionários
-    dias_no_ano = 7  # Exemplo: 7 dias
+    funcionarios = list(range(1, 13))
+    dias_no_ano = 365
 
     variaveis = variaveis_obj.criar_variaveis(funcionarios, dias_no_ano)
 
