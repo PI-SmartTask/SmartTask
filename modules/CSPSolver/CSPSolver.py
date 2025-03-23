@@ -4,30 +4,59 @@ import time
 import csv
 import logging
 from typing import Dict, List, Optional, Any
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Formulation')))
+from Solver import Solver  # Importação correta do módulo Solver
 
-from Solver import Solver # Agora o python consegue encontrar o modulo Solver
-
-# Configurar logging
+# Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)
+
 
 class CSPSolver(Solver):
     """
     Solver baseado em CSP (Constraint Satisfaction Problem).
-    Utiliza Backtracking básico para encontrar uma solução.
+    Utiliza Backtracking básico com Forward Checking para encontrar uma solução.
     """
 
     def buscar_solucao(self, variaveis: Dict[str, List[str]], restricoes: List[Dict[str, Any]]) -> Optional[Dict[str, str]]:
         inicio = time.time()  # Início do contador de tempo
 
+        def forward_checking(var: str, valor: str, variaveis: Dict[str, List[str]], restricoes: List[Dict[str, Any]]) -> List[tuple]:
+            """
+            Remove valores inconsistentes do domínio das variáveis futuras após uma atribuição.
+            Retorna uma lista dos valores removidos para possível reversão.
+            """
+            removidos = []
+
+            for restricao in restricoes:
+                if var in restricao["variaveis"]:
+                    for outra_var in restricao["variaveis"]:
+                        if outra_var != var and outra_var in variaveis and len(variaveis[outra_var]) > 1:
+                            valores_a_remover = [v for v in variaveis[outra_var] if not self.verificar_consistencia({var: valor, outra_var: v}, [restricao])]
+                            for v in valores_a_remover:
+                                variaveis[outra_var].remove(v)
+                                removidos.append((outra_var, v))
+
+                            # Caso um domínio fique vazio, pare a verificação antecipadamente
+                            if not variaveis[outra_var]:
+                                return removidos
+
+            return removidos
+
+        def desfazer_forward_checking(removidos: List[tuple], variaveis: Dict[str, List[str]]):
+            """Reverte as remoções feitas pelo forward checking."""
+            for var, valor in removidos:
+                if valor not in variaveis[var]:
+                    variaveis[var].append(valor)
+
         def backtrack(atual: Dict[str, str]) -> Optional[Dict[str, str]]:
-            # Verificar se a atribuição está completa (todas as variáveis atribuídas)
+            # Verificar se a atribuição está completa
             if len(atual) == len(variaveis):
                 logger.info("Solução completa encontrada!")
                 return atual
 
-            # Selecionar a próxima variável a ser atribuída
+            # Selecionar a próxima variável usando heurística de Menor Domínio (MRV)
             var = self.selecionar_variavel_nao_atribuida(variaveis, atual)
             logger.info(f"Selecionando variável não atribuída: {var}")
 
@@ -37,12 +66,20 @@ class CSPSolver(Solver):
 
                 if self.verificar_consistencia(atual, restricoes):
                     logger.info(f"Atribuição consistente: {var} = {valor}")
-                    resultado = backtrack(atual)
-                    if resultado:
-                        return resultado
+
+                    # Aplicar forward checking após a atribuição
+                    removidos = forward_checking(var, valor, variaveis, restricoes)
+
+                    if not any(not dominio for dominio in variaveis.values()):  # Continuar se todos os domínios têm valores
+                        resultado = backtrack(atual)
+                        if resultado:
+                            return resultado
+
+                    logger.info(f"Desfazendo remoções de forward checking após falha")
+                    desfazer_forward_checking(removidos, variaveis)
 
                 logger.info(f"Revertendo atribuição: {var} = {valor}")
-                del atual[var]  # Reverter atribuição em caso de falha
+                del atual[var]  # Reverter atribuição
 
             return None
 
@@ -70,25 +107,18 @@ class CSPSolver(Solver):
 
         logger.info(f"Solução salva em {filename}")
 
-    def propagar_restricoes(self, variaveis: Dict[str, List[str]], restricoes: List[Dict[str, Any]]) -> Dict[str, List[str]]:
-        for restricao in restricoes:
-            for var in restricao["variaveis"]:
-                for valor in variaveis[var][:]:
-                    if not restricao["regra"]([valor]):
-                        variaveis[var].remove(valor)
-        return variaveis
-
     def selecionar_variavel_nao_atribuida(self, variaveis: Dict[str, List[str]], atual: Dict[str, str]) -> str:
+        """Seleciona a variável não atribuída usando uma heurística de menor domínio (MRV)."""
         return min((v for v in variaveis if v not in atual), key=lambda x: len(variaveis[x]))
 
     def verificar_consistencia(self, atual: Dict[str, str], restricoes: List[Dict[str, Any]]) -> bool:
+        """Verifica se a atribuição atual é consistente com as restrições."""
         for restricao in restricoes:
             variaveis_restricao = restricao["variaveis"]
             valores = [atual.get(var, None) for var in variaveis_restricao]
 
             if all(valores) and not restricao["regra"](valores):
-                logger.info(
-                    f"Inconsistência detectada: {valores} falham na restrição {restricao.get('descricao', 'sem descrição')}")
+                logger.info(f"Inconsistência detectada: {valores} falham na restrição {restricao.get('descricao', 'sem descrição')}")
                 return False
 
         return True

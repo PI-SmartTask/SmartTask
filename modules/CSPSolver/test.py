@@ -1,6 +1,6 @@
-# from . import CSPSolver
 import sys
 import os
+import logging
 
 # Adiciona o diretório CSPSolver ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'CSPSolver')))
@@ -8,6 +8,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'C
 from CSPSolver import CSPSolver
 from variaveis import Variaveis
 from restricoes import Restricoes
+
+# Configuração do logger
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     # Criar variáveis e domínios
@@ -24,7 +28,7 @@ if __name__ == "__main__":
     restricoes_obj.adicionar_restricao_local(
         "Sequência inválida T → M",
         ["X_1_1", "X_1_2"],
-        lambda valores: not (valores[0] == "T" and valores[1] == "M")  # Correto
+        lambda valores: not (valores[0] == "T" and valores[1] == "M")
     )
 
     # Restrição 2: Máximo de 5 dias consecutivos de trabalho
@@ -83,5 +87,10 @@ if __name__ == "__main__":
 
     # Usar o solver CSP
     csp_solver = CSPSolver()
-    solucao_csp = csp_solver.buscar_solucao(variaveis, restricoes)
-    print(f"Solução CSP encontrada: {solucao_csp}")
+
+    # Corrigindo a busca do CSP para evitar loops infinitos
+    try:
+        solucao_csp = csp_solver.buscar_solucao(variaveis, restricoes)
+        print(f"Solução CSP encontrada: {solucao_csp}")
+    except RecursionError:
+        logger.error("Erro de recursão! O backtracking está entrando em loop infinito.")

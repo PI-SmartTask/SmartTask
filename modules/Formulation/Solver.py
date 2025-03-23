@@ -23,17 +23,3 @@ class Solver(ABC):
         """
         pass
 
-    @abstractmethod
-    def propagar_restricoes(self, variaveis: Dict[str, List[str]], restricoes: List[Dict[str, Any]]) -> Dict[
-        str, List[str]]:
-        """
-        Propaga restrições para reduzir os domínios das variáveis.
-
-        Args:
-            variaveis (Dict[str, List[str]]): As variáveis do problema e seus domínios.
-            restricoes (List[Dict[str, Any]]): Lista de restrições a serem propagadas.
-
-        Returns:
-            Dict[str, List[str]]: Domínios reduzidos após a propagação de restrições.
-        """
-        pass

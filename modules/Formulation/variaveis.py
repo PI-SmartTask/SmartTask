@@ -17,6 +17,7 @@ class Variaveis:
         self.variaveis = {
             f"X_{i}_{j}": ["M", "T", "F"]  # Manhã, Tarde, Folga
             for i in funcionarios
-            for j in range(1, dias + 1)
+            for j in range(dias)  # Agora j inicia em 0
         }
+
         return self.variaveis
