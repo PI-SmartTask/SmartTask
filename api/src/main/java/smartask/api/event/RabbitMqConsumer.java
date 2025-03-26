@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import smartask.api.models.TaskStatus;
 import smartask.api.repositories.TaskStatusRepository;
+import smartask.api.event.TaskStatusWebSocketHandler;
+
 import java.util.Optional;
 
 @Component
@@ -17,10 +19,13 @@ public class RabbitMqConsumer {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TaskStatusWebSocketHandler webSocketHandler;
+
     @RabbitListener(queues = "task-queue")
     public void receiveMessage(String message) {
         try {
-            // Parse JSON message to retrieve taskId and status update
+            // Parse JSON message
             TaskStatus receivedStatus = objectMapper.readValue(message, TaskStatus.class);
             String taskId = receivedStatus.getTaskId();
             String newStatus = receivedStatus.getStatus();
@@ -29,6 +34,9 @@ public class RabbitMqConsumer {
 
             // Update task status in the database
             updateTaskStatus(taskId, newStatus);
+
+            // Broadcast the update via WebSocket
+            webSocketHandler.broadcastTaskStatus(taskId, newStatus);
 
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
