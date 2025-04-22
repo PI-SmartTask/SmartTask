@@ -225,13 +225,16 @@ def solve(f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, horario, dias):
 
         t += 1
 
-    # Imprime só no final
-    print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrabalhoFDS, Prefs, feriados, nMinTrabs=2)
+    # Carregar o CSV final
+    schedule = []
+    with open('calendario.csv', mode='r', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile, dialect='excel')
+        for row in reader:
+            schedule.append(row)
 
-    # Salvar CSV com solução otimizada
-    salvar_csv(horario, Ferias, nTurnos, nDias, Prefs)
+    return schedule, horario
 
-    return horario
+
 
 execution_time = time.time() - start_time
 
@@ -274,5 +277,10 @@ def print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrab
 print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrabalhoFDS, Prefs, feriados, nMinTrabs=2)
 salvar_csv(horario, Ferias, nTurnos, nDias, Prefs)
 
+
 if __name__ == "__main__":
-    resultado = solve(f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, horario, dias)
+    resultado, horario_final = solve(f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, horario, dias)
+    print_tabela_completa(
+        horario_final, Ferias, fds, nTrabs, nDiasSeguidos, 
+        nDiasTrabalhoFDS, Prefs, feriados, nMinTrabs
+    )
