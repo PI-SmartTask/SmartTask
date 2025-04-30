@@ -21,7 +21,7 @@ nMaxFolga = 142                 # Número máximo de dias de folga
 nTurnos = 2                     # Número de turnos por dia (Manhã e Tarde)
 
 # Definindo os feriados
-feriados = [31, 60, 120, 150, 200, 240, 300, 330]
+feriados = [1, 108, 110, 115, 121, 161, 170, 227, 278, 305, 335, 342, 359] 
 
 #miminos das equipas
 minimos_equipa_A_manha = [2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2]
@@ -30,6 +30,16 @@ minimos_equipa_A_tarde = [2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,
 minimos_equipa_B_manha = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 minimos_equipa_B_tarde = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 
+
+# corrigir e fazer
+
+# implementar uma funcao que diz  quantidade de pessoas está abaixo do mínimo,entre mínimo e ideal e acima do idea
+# corriguir criterio 3 pois tem que retronar as falhas por trabalhador 
+# contar quantas Manhas e quantas tardes estao a trabalhar para cada turnos
+# Comecar o Ideal (dizer dias que não estao a comprir o ideal)
+# buscar o csv das ferias e remover as listas de minimos
+# meter feriados de 2025 
+# falta de validar as equipas, isto é equipas e turnos 
 
 # Função para ferias
 def ler_ferias_csv(caminho_csv, nDias):
@@ -56,7 +66,7 @@ nTrabs = Ferias.shape[0]
 
 #atribuir turnos aos trabalhadores de maneira eficiente, respeitando as preferências dos turnos e garantindo que a sequência Tarde seguida de Manhã (T->M) seja evitada
 def atribuir_turnos_eficiente(Prefs, nDiasTrabalho, Ferias, nTurnos):
-    nTrabs, nDias, _ = horario.shape
+    nTrabs, nDias, _ = horario.shape 
 
     for i in range(nTrabs): 
         dias_disponiveis = np.where(~Ferias[i])[0]
@@ -72,17 +82,17 @@ def atribuir_turnos_eficiente(Prefs, nDiasTrabalho, Ferias, nTurnos):
             for turno in Prefs[i]:
                 # Verifica violação Tarde -> Manhã
                 if turno == 1:  # Tarde
-                    if dia + 1 >= nDias or horario[i, dia + 1, 0] == 0:
+                    if dia + 1 >= nDias or horario[i, dia + 1, 0] == 0:  # Verifica se o dia seguinte é válido e não está ocupado
                         turnos_possiveis.append(turno)
                 elif turno == 0:  # Manhã
-                    if dia - 1 < 0 or horario[i, dia - 1, 1] == 0:
+                    if dia - 1 < 0 or horario[i, dia - 1, 1] == 0:  # Verifica se o dia anterior é válido e não está ocupado
                         turnos_possiveis.append(turno)
 
             if turnos_possiveis:
                 turno = np.random.choice(turnos_possiveis)
-                horario[i, dia, turno] = 1
-                turnos_assigned += 1
-                d += 2 if turno == 1 else 1
+                horario[i, dia, turno] = 1   
+                turnos_assigned += 1    
+                d += 2 if turno == 1 else 1  # Aumenta o índice de dias disponíveis para evitar T->M
             else:
                 d += 1
         # Segunda chance: repetição controlada, ainda evitando T->M
@@ -92,7 +102,7 @@ def atribuir_turnos_eficiente(Prefs, nDiasTrabalho, Ferias, nTurnos):
             for turno in Prefs[i]:
                 # Verificar violação aqui também
                 if turno == 1:
-                    if dia + 1 >= nDias or horario[i, dia + 1, 0] == 0:
+                    if dia + 1 >= nDias or horario[i, dia + 1, 0] == 0:  
                         if horario[i, dia, turno] == 0:
                             horario[i, dia, turno] = 1
                             turnos_assigned += 1
@@ -137,13 +147,12 @@ def criterio2(horario, fds, nDiasTrabalhoFDS, feriados):
     return excedente
 
 # vereficar numero de trabalhadores  abaixo do mínimo necessário
-def criterio3(horario, nMinTrabs):
+def criterio3(horario, nMinTrabs): #
 
     trabalhadores_por_dia = np.sum(horario, axis=1)                                   # Soma de trabalhadores por dia em coluna 
     dias_com_menos_trabalhadores = np.sum(trabalhadores_por_dia < nMinTrabs, axis=1)  # Para cada trabalhador, contamos quantos dias têm menos trabalhadores que o mínimo necessário.
     
     return np.sum(dias_com_menos_trabalhadores)
-
 
 # Diferença entre folgas e limite máximo permitido
 def criterio4(horario, nMaxFolga):
@@ -165,13 +174,15 @@ def criterio5(horario, Prefs):
     return f5
 
 #     return violacoes
+
+
+#aqui corrigir
 def criterio6(horario, minimos_equipa_A_manha, minimos_equipa_A_tarde, minimos_equipa_B_manha, minimos_equipa_B_tarde, Prefs):
     nTrabs, nDias, _ = horario.shape
     violacoes_por_trab = np.zeros(nTrabs, dtype=int)
 
     equipe_A, equipe_B, ambas = identificar_equipes(Prefs)
 
-    # Usar conjuntos para equipes para acessos mais rápidos
     equipe_A_set = set(equipe_A)
     equipe_B_set = set(equipe_B)
     ambas_set = set(ambas)
@@ -199,11 +210,11 @@ def criterio6(horario, minimos_equipa_A_manha, minimos_equipa_A_tarde, minimos_e
             # Verificando tarde
             if 1 in prefs:
                 if i in equipe_A_set or i in ambas_set:
-                    if horario[i, d, 1] == 1 and A_tarde_totais[d] < minimos_equipa_A_tarde[d]:
+                    if horario[i, d, 1] == 1 and A_tarde_totais[d] < minimos_equipa_A_tarde[d]:  
                         violacoes_por_trab[i] += 1
                 if i in equipe_B_set or i in ambas_set:
                     if horario[i, d, 1] == 1 and B_tarde_totais[d] < minimos_equipa_B_tarde[d]:
-                        violacoes_por_trab[i] += 1
+                        violacoes_por_trab[i] += 1 
 
     return violacoes_por_trab
 
@@ -286,7 +297,7 @@ while t < 300000 and (np.any(f1_opt) or np.any(f2_opt) or np.any(f4_opt) or np.a
     dia1, dia2 = dias[1][dias[0] == i][aux]                                 # Define os dois dias selecionados
     turno1, turno2 = np.random.choice(nTurnos, 2, replace=False)            # Seleciona aleatoriamente 2 turnos
 
-    pode_trabalhar_A = 0 in Prefs[i]
+    pode_trabalhar_A = 0 in Prefs[i] 
     pode_trabalhar_B = 1 in Prefs[i]
 
     # Verifica se os turnos são diferentes, o que significa que haverá uma troca
@@ -324,8 +335,6 @@ while t < 300000 and (np.any(f1_opt) or np.any(f2_opt) or np.any(f4_opt) or np.a
 
     t += 1
 
-
-
 execution_time = time.time() - start_time
 
 print("======= RESULTADOS =======\n")
@@ -361,8 +370,6 @@ def print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrab
             transicoes_tm,
             ferias_como_folga,
             falhas_criterio3,
-       
-
         ])
     
     print("\nTabela Completa")
