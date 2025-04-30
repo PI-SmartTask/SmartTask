@@ -162,27 +162,50 @@ def criterio5(horario, Prefs):
                                                                      # Verifica se houve a sequência Tarde seguida de Manhã
                 if horario[i, d, 1] == 1 and horario[i, d + 1, 0] == 1:
                     f5[i] += 1
-            
     return f5
+
+#     return violacoes
 def criterio6(horario, minimos_equipa_A_manha, minimos_equipa_A_tarde, minimos_equipa_B_manha, minimos_equipa_B_tarde, Prefs):
+    nTrabs, nDias, _ = horario.shape
+    violacoes_por_trab = np.zeros(nTrabs, dtype=int)
 
     equipe_A, equipe_B, ambas = identificar_equipes(Prefs)
-    
-    # Calcular o número de trabalhadores em cada turno por equipe de forma vetorizada
-    A_manha = np.sum(horario[equipe_A, :, 0], axis=0) + np.sum(horario[ambas, :, 0], axis=0)
-    A_tarde = np.sum(horario[equipe_A, :, 1], axis=0) + np.sum(horario[ambas, :, 1], axis=0)
-    B_manha = np.sum(horario[equipe_B, :, 0], axis=0) + np.sum(horario[ambas, :, 0], axis=0)
-    B_tarde = np.sum(horario[equipe_B, :, 1], axis=0) + np.sum(horario[ambas, :, 1], axis=0)
 
-    violacoes = (
-    (A_manha < minimos_equipa_A_manha).sum() +
-    (A_tarde < minimos_equipa_A_tarde).sum() +
-    (B_manha < minimos_equipa_B_manha).sum() +
-    (B_tarde < minimos_equipa_B_tarde).sum()
-)
+    # Usar conjuntos para equipes para acessos mais rápidos
+    equipe_A_set = set(equipe_A)
+    equipe_B_set = set(equipe_B)
+    ambas_set = set(ambas)
 
+    # Calculando totais por turno e equipe de forma vetorizada
+    A_manha_totais = np.sum(horario[equipe_A, :, 0], axis=0) + np.sum(horario[ambas, :, 0], axis=0)
+    A_tarde_totais = np.sum(horario[equipe_A, :, 1], axis=0) + np.sum(horario[ambas, :, 1], axis=0)
+    B_manha_totais = np.sum(horario[equipe_B, :, 0], axis=0) + np.sum(horario[ambas, :, 0], axis=0)
+    B_tarde_totais = np.sum(horario[equipe_B, :, 1], axis=0) + np.sum(horario[ambas, :, 1], axis=0)
 
-    return violacoes
+    for d in range(nDias):
+        # Verificando violacoes para cada trabalhador de forma vetorizada
+        for i in range(nTrabs):
+            prefs = Prefs[i]
+            
+            # Verificando manhã
+            if 0 in prefs:
+                if i in equipe_A_set or i in ambas_set:
+                    if horario[i, d, 0] == 1 and A_manha_totais[d] < minimos_equipa_A_manha[d]:
+                        violacoes_por_trab[i] += 1
+                if i in equipe_B_set or i in ambas_set:
+                    if horario[i, d, 0] == 1 and B_manha_totais[d] < minimos_equipa_B_manha[d]:
+                        violacoes_por_trab[i] += 1
+
+            # Verificando tarde
+            if 1 in prefs:
+                if i in equipe_A_set or i in ambas_set:
+                    if horario[i, d, 1] == 1 and A_tarde_totais[d] < minimos_equipa_A_tarde[d]:
+                        violacoes_por_trab[i] += 1
+                if i in equipe_B_set or i in ambas_set:
+                    if horario[i, d, 1] == 1 and B_tarde_totais[d] < minimos_equipa_B_tarde[d]:
+                        violacoes_por_trab[i] += 1
+
+    return violacoes_por_trab
 
 def calcular_criterios(horario, fds, nDiasSeguidos, nDiasTrabalhoFDS, nMinTrabs, nMaxFolga, feriados):
     f1 = criterio1(horario, nDiasSeguidos)
@@ -296,7 +319,7 @@ while t < 300000 and (np.any(f1_opt) or np.any(f2_opt) or np.any(f4_opt) or np.a
                 break
 
             # Compara a solução atual com a solução ótima
-            if f1[i] + f2[i] + f3 + f4[i] + f5[i] + f6 < f1_opt[i] + f2_opt[i] + f3_opt + f4_opt[i] + f5_opt[i] + f6_opt:
+            if (f1[i] + f2[i] + f3 + f4[i] + f5[i] + f6 < f1_opt[i] + f2_opt[i] + f3_opt + f4_opt[i] + f5_opt[i] + f6_opt).any():
                 f1_opt[i], f2_opt[i], f3_opt, f4_opt[i], f5_opt[i], f6_opt, horario = f1[i], f2[i], f3, f4[i], f5[i], f6, hor
 
     t += 1
@@ -329,7 +352,7 @@ def print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrab
         transicoes_tm = criterio5(horario, Prefs)[e]                                             # Transições T -> M
         ferias_como_folga = np.sum(Ferias[e])                                                    # Dias de férias
         falhas_criterio3 = criterio3(horario, nMinTrabs)                                         # Falhas de número de trabalhadores abaixo do mínimo
-        
+
         tabela.append([
             f"Funcionário {e + 1}",
             dias_fds_feriados_trabalhados,
@@ -337,15 +360,18 @@ def print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrab
             max_seq_trabalho,
             transicoes_tm,
             ferias_como_folga,
-            falhas_criterio3  
+            falhas_criterio3,
+       
+
         ])
     
     print("\nTabela Completa")
     print(f"{'Funcionário':<15}{'Dom/Feriado Trabalhados':<25}{'Dias Trabalhados':<20}{'Máx Seq. Trabalho':<20}{'Transições T->M':<20}{'Férias':<20}{'nª trab minimo':<20}")
+
     print("=" * 160)
     
     for linha in tabela:
         print(f"{linha[0]:<15}{linha[1]:<25}{linha[2]:<20}{linha[3]:<20}{linha[4]:<20}{linha[5]:<20}{linha[6]:<20}")
 
-print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrabalhoFDS, Prefs, feriados, nMinTrabs=2)
+print_tabela_completa(horario, Ferias, fds, nTrabs, nDiasSeguidos, nDiasTrabalhoFDS, Prefs , feriados, nMinTrabs)
 salvar_csv(horario, Ferias, nTurnos, nDias, Prefs)
