@@ -16,7 +16,7 @@ def analyze(file, holidays, teams):
     total_afternoon = 0
     total_tm_fails = 0
     single_team_violations = 0
-    two_team_preference_violations = 0
+    two_team_shift_distribution = {}
 
     holiday_cols = [f'Dia {d}' for d in holidays if f'Dia {d}' in df.columns]
     dia_cols = [col for col in df.columns if col.startswith("Dia ")]
@@ -72,16 +72,19 @@ def analyze(file, holidays, teams):
                 continue
             team_counts[team] += 1
 
+
         if len(allowed_teams) == 1:
             allowed_team = allowed_teams[0]
             other_team = 2 if allowed_team == 1 else 1
             if team_counts[other_team] > 0:
                 single_team_violations += 1
         elif len(allowed_teams) == 2:
-            preferred_team = allowed_teams[0]
-            other_team = 2 if preferred_team == 1 else 1
-            if team_counts[preferred_team] < team_counts[other_team]:
-                two_team_preference_violations += 1
+            morning_shifts = sum(row[col] in ['M_A', 'M_B'] for col in dia_cols)
+            afternoon_shifts = sum(row[col] in ['T_A', 'T_B'] for col in dia_cols)
+            two_team_shift_distribution[emp_id] = {
+                "morningShifts": morning_shifts,
+                "afternoonShifts": afternoon_shifts
+            }
 
         total_morning += sum(row[col] in ['M_A', 'M_B'] for col in dia_cols)
         total_afternoon += sum(row[col] in ['T_A', 'T_B'] for col in dia_cols)
@@ -101,9 +104,9 @@ def analyze(file, holidays, teams):
         M_B = sum(row[col] == 'M_B' for _, row in df.iterrows())
         T_B = sum(row[col] == 'T_B' for _, row in df.iterrows())
         if M_A < 2:
-            missed_team_min += 1
+            missed_team_min += (2 - M_A)
         if T_A < 2:
-            missed_team_min += 1
+            missed_team_min += (2 - T_A)
         if M_B < 1:
             missed_team_min += 1
         if T_B < 1:
@@ -118,7 +121,7 @@ def analyze(file, holidays, teams):
         "shiftBalance": round(shift_balance, 2),
         "tmFails": total_tm_fails,
         "singleTeamViolations": single_team_violations,
-        "twoTeamPreferenceViolations": two_team_preference_violations,
+        "twoTeamShiftDistribution": two_team_shift_distribution,
     }
 
 if __name__ == "__main__":
