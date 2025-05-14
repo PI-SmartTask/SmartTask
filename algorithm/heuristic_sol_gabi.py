@@ -37,7 +37,6 @@ nTurnos = 2                     # Número de turnos por dia (Manhã e Tarde)
 
 # Definindo os feriados
 feriados = [1, 108, 110, 115, 121, 161, 170, 227, 278, 305, 335, 342, 359] 
-import pandas as pd
 
 def ler_minimos_csv(minimuns, nDias):
     n_dias_totais = len(minimuns[0]) - 3
@@ -83,8 +82,6 @@ def atribuir_turnos_eficiente(Prefs, nDiasTrabalho, Ferias, nTurnos, nDias):
     nTrabs = len(Prefs)
     horario = np.zeros((nTrabs, nDias, nTurnos), dtype=int)
 
-    print("ferias aaa", Ferias )
-
     for i in range(nTrabs): 
         dias_disponiveis = np.where(~Ferias[i])[0]  # Filtra dias que não são férias
         np.random.shuffle(dias_disponiveis)
@@ -129,6 +126,19 @@ def criterio1(horario, nDiasSeguidos):
     janela = np.ones(nDiasSeguidos, dtype=int)
     sequencias = np.apply_along_axis(lambda x: np.convolve(x.astype(int), janela, mode='valid'), 1, dias_trabalhados)
     return np.sum(sequencias == nDiasSeguidos, axis=1)
+# def criterio1(horario, nDiasSeguidos):
+#     dias_trabalhados = np.sum(horario, axis=2) > 0
+#     violacoes = np.zeros(horario.shape[0], dtype=int)
+#     for i in range(dias_trabalhados.shape[0]):
+#         cont = 0
+#         for dia in dias_trabalhados[i]:
+#             if dia:
+#                 cont += 1
+#                 if cont > nDiasSeguidos:
+#                     violacoes[i] += 1
+#             else:
+#                 cont = 0
+#     return violacoes
 
 
 def criterio2(horario, fds, nDiasTrabalhoFDS, feriados):
@@ -166,6 +176,13 @@ def criterio4(horario, Ferias, nMaxFolga):
     folgas = nDias - dias_trabalhados_por_trabalhador
     excesso_folga = np.maximum(folgas - nMaxFolga, 0)
     return excesso_folga
+
+# # Critério 4: Número máximo de dias de folga
+# def criterio4(horario, Ferias, nMaxFolga):
+#     dias_trabalhados = np.sum(horario, axis=2) > 0
+#     dias_folga = ~(dias_trabalhados | Ferias)  # folga real: não trabalho e não férias
+#     excesso_folga = np.maximum(np.sum(dias_folga, axis=1) - nMaxFolga, 0)
+#     return excesso_folga
 
 def criterio5(horario):
     f5 = np.zeros(horario.shape[0], dtype=int)  
@@ -284,37 +301,34 @@ def solve(vacations, minimuns, employees):
 
     Ferias = ler_ferias_csv(vacations, nDias)
     Prefs = gerar_preferencias_automatica(employees)
-    print("preferencias : ", Prefs)
-    print("Ferias dtype:", Ferias.dtype)
-    print("Ferias matrix:\n", Ferias)
-
-    np.set_printoptions(threshold=np.inf) 
-
-    minimuns = ler_minimos_csv(minimuns, nDias)
-    nTrabs = len(Prefs)
-
-    start_time = time.time()
-    dias = np.where(~Ferias)   
+    nTrabs = len(Prefs) 
+    dias = np.where(~Ferias) 
     fds = np.zeros((nTrabs, nDias), dtype=bool)
     fds[:, 4::7] = True  # domingos
-
     global horario
     horario = atribuir_turnos_eficiente(Prefs, nDiasTrabalho, Ferias, nTurnos, nDias)
 
+    #np.set_printoptions(threshold=np.inf) 
+
+    minimuns = ler_minimos_csv(minimuns, nDias)
+    
+    start_time = time.time()
+      
     f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, f6_opt = calcular_criterios(
         horario, fds, nDiasSeguidos, nDiasTrabalhoFDS,
         nMinTrabs, nMaxFolga, feriados,
         vacations, minimuns, Prefs, nDias
     )
-    print("ferias",Ferias)
+    #print("ferias",Ferias)
 
     t, cont = 0, 0
-    max_iter = 400000
+    max_iter = 300000
+    nTrabs = len(Prefs)
 
     while t < max_iter and (np.any(f1_opt) or np.any(f2_opt) or np.any(f4_opt) or np.any(f5_opt) or np.any(f6_opt)):
         cont += 1
         i = np.random.randint(nTrabs)
-        dias_trabalhados = np.where((np.sum(horario[i], axis=1) > 0) & (~Ferias[i]))[0]
+        dias_trabalhados = dias[1][dias[0] == i]    #np.where((np.sum(horario[i], axis=1) > 0) & (~Ferias[i]))[0]
 
         if len(dias_trabalhados) < 2:
             t += 1
@@ -351,13 +365,13 @@ def solve(vacations, minimuns, employees):
                 vacations, minimuns, Prefs, nDias
             )
 
-            if np.all(f1 == 0) and np.all(f2 == 0) and f3 == 0 and np.all(f4 == 0) and np.all(f5 == 0):
-                f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, horario = f1, f2, f3, f4, f5, hor
+            if np.all(f1 == 0) and np.all(f2 == 0) and f3 == 0 and np.all(f4 == 0) and np.all(f5 == 0) and np.all(f6 == 0):
+                f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, f6_opt, horario = f1, f2, f3, f4, f5,f6, hor
                 print("\nSolução perfeita encontrada!")
                 break
 
-            if np.sum(f1) + np.sum(f2) + f3 + np.sum(f4) + np.sum(f5) < np.sum(f1_opt) + np.sum(f2_opt) + f3_opt + np.sum(f4_opt) + np.sum(f5_opt):
-                f1_opt, f2_opt, f3_opt, f4_opt, f5_opt, horario = f1, f2, f3, f4, f5, hor
+            if np.sum(f1) + np.sum(f2) + f3 + np.sum(f4) + np.sum(f5) + np.sum(f6) < np.sum(f1_opt) + np.sum(f2_opt) + f3_opt + np.sum(f4_opt) + np.sum(f5_opt) + np.sum(f6_opt):
+                f1_opt, f2_opt, f3_opt, f4_opt, f5_opt,f6_opt, horario = f1, f2, f3, f4, f5, f6, hor
 
         t += 1
 
