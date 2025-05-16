@@ -15,6 +15,10 @@ import {
   Grid,
   Divider,
   IconButton,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 
@@ -30,6 +34,9 @@ const Teams = () => {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [teamDetails, setTeamDetails] = useState(null);
   const [newEmployeeIds, setNewEmployeeIds] = useState("");
+
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState(null);
 
   useEffect(() => {
     fetchTeams();
@@ -59,13 +66,18 @@ const Teams = () => {
   };
 
   const handleAddOrUpdateTeam = async () => {
+    if (typeof newTeamName !== "string" || newTeamName.trim() === "") {
+      console.error("Team name is invalid or empty");
+      return;
+    }
+
     const employeeIds = employeeIdsInput
       .split(",")
       .map((id) => id.trim())
       .filter((id) => id);
 
     const payload = {
-      name: newTeamName,
+      name: newTeamName.trim(),
       employeeIds: employeeIds,
     };
 
@@ -100,6 +112,28 @@ const Teams = () => {
       }
     } catch (error) {
       console.error("Error adding or updating team:", error);
+    }
+  };
+
+  const handleDeleteTeam = async () => {
+    try {
+      const response = await fetch(`${BaseUrl}/api/v1/teams/${teamToDelete}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+
+      if (response.ok) {
+        fetchTeams();
+        setOpenConfirmDialog(false);
+      } else {
+        const errorData = await response.json();
+        console.error("Error deleting team:", errorData);
+      }
+    } catch (error) {
+      console.error("Error deleting team:", error);
     }
   };
 
@@ -225,29 +259,52 @@ const Teams = () => {
   return (
     <div className="admin-container">
       <Sidebar_Manager />
-      <div className="main-content" style={{ flex: 1, padding: "20px" }}>
+      <div className="main-content" style={{ flex: 1, padding: "20px", marginRight: 52 }}>
         <Box sx={{ padding: 4, flexGrow: 1 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h4" gutterBottom>
               Team List
             </Typography>
-            <Box display="flex" gap={2} alignItems="center" sx={{ width: "35%" }}>
+            <Button sx={{ marginLeft: "30%" }} variant="contained" color="success" onClick={() => setOpenDialog(true)}>
+              + New Team
+            </Button>
+            <Box display="flex" gap={2} alignItems="center" sx={{ width: "50%" }}>
               <TextField
                 label="Search by Team ID"
                 variant="outlined"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 margin="normal"
-                sx={{ flex: 1, borderRadius: "8px", backgroundColor: "#fff" }}
+                sx={{ flex: 1 }}
               />
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => setOpenDialog(true)}
-                sx={{ height: "100%", padding: "10px 20px", fontWeight: "bold", borderRadius: "8px" }}
-              >
-                + New Team
-              </Button>
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel id="select-team-label">Select Team pra eliminar</InputLabel>
+                <Select
+                  labelId="select-team-label"
+                  value={editTeamId || ""}
+                  label="Select Team"
+                  onChange={(e) => setEditTeamId(e.target.value)}
+                >
+                  {teams.map((team) => (
+                    <MenuItem key={team.id} value={team.id}>
+                      {team.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {editTeamId && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => {
+                    setTeamToDelete(editTeamId);
+                    setOpenConfirmDialog(true);
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
             </Box>
           </Box>
 
@@ -268,9 +325,7 @@ const Teams = () => {
                       <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
                         {team.name}
                       </Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                        {team.description || "No description"}
-                      </Typography>
+
                       <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                         {team.employeeIds?.length || 0} employee(s)
                       </Typography>
@@ -325,6 +380,23 @@ const Teams = () => {
         </DialogActions>
       </Dialog>
 
+      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this team?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirmDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeleteTeam}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog}>
         <DialogTitle>
           Team Details
@@ -337,35 +409,76 @@ const Teams = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ width: 420 }}>
+        <DialogContent dividers sx={{ padding: 4, bgcolor: "#fafafa" }}>
           {teamDetails ? (
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                Name: {teamDetails.name}
+            <>
+              <Typography
+                variant="h5"
+                gutterBottom
+                sx={{ fontWeight: "700", color: "#1976d2", mb: 3, letterSpacing: 0.5 }}
+              >
+                {teamDetails.name}
               </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ marginTop: 1 }}>
-                Description: {teamDetails.description || "No description"}
+
+              <Divider sx={{ mb: 3 }} />
+
+              <Typography variant="subtitle1" sx={{ fontWeight: "600", mb: 2 }}>
+                Employees ({teamDetails.employees.length})
               </Typography>
-              <Divider sx={{ marginTop: 2 }} />
-              <Typography variant="subtitle1" sx={{ marginTop: 2, fontWeight: 'bold' }}>
-                Employees:
-              </Typography>
+
               {teamDetails.employees.map((emp) => (
-                <Box key={emp.id} sx={{ ml: 2, mt: 1 }}>
-                  <Typography variant="body2">
-                    • {emp.name} ({emp.id})
+                <Paper
+                  key={emp.id}
+                  elevation={3}
+                  sx={{
+                    p: 2,
+                    mb: 2,
+                    borderRadius: 3,
+                    transition: "transform 0.15s ease-in-out",
+                    cursor: "default",
+                    "&:hover": {
+                      boxShadow: "0 4px 20px rgba(25, 118, 210, 0.3)",
+                      transform: "translateY(-3px)",
+                    },
+                  }}
+                >
+                  <Typography variant="body1" sx={{ fontWeight: "600" }}>
+                    {emp.name}{" "}
+                    <Typography component="span" color="text.secondary" sx={{ fontWeight: "400" }}>
+                      ({emp.id})
+                    </Typography>
                   </Typography>
-                  {Object.keys(emp.restrictions).length > 0 ? (
-                    <Typography variant="caption" color="error">
-                      Restrictions: {JSON.stringify(emp.restrictions)}
-                    </Typography>
-                  ) : (
-                    <Typography variant="caption" color="textSecondary">
-                      No restrictions
-                    </Typography>
+
+                  {Object.entries(emp.restrictions).length > 0 && (
+                    <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                      {Object.entries(emp.restrictions).map(([key, value]) => (
+                        <Box
+                          key={key}
+                          sx={{
+                            backgroundColor: "#e3f2fd",
+                            borderRadius: "16px",
+                            px: 2,
+                            py: 0.5,
+                            fontSize: "0.85rem",
+                            color: "#0d47a1",
+                            fontWeight: "500",
+                            boxShadow: "0 1px 3px rgba(13, 71, 161, 0.2)",
+                            cursor: "default",
+                            userSelect: "none",
+                            transition: "background-color 0.3s",
+                            "&:hover": {
+                              backgroundColor: "#bbdefb",
+                            },
+                          }}
+                        >
+                          {key}: {value}
+                        </Box>
+                      ))}
+                    </Box>
                   )}
-                </Box>
+                </Paper>
               ))}
+
               <TextField
                 label="Add Employee IDs"
                 fullWidth
@@ -373,27 +486,38 @@ const Teams = () => {
                 value={newEmployeeIds}
                 onChange={(e) => setNewEmployeeIds(e.target.value)}
                 helperText="Enter IDs separated by commas"
+                sx={{ mt: 2 }}
               />
               <Button
                 variant="contained"
-                color="primary"
+                color="success"
                 onClick={handleAddEmployeesToTeam}
-                sx={{ marginTop: 2 }}
+                sx={{ mt: 2, boxShadow: "0 4px 10px rgba(25, 118, 210, 0.3)" }}
+                fullWidth
               >
                 Add Employees
               </Button>
-            </Box>
+            </>
           ) : (
-            <CircularProgress sx={{ display: "block", margin: "0 auto" }} />
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress size={48} />
+            </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDetailsDialog} color="primary">
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseDetailsDialog}
+            color="error"
+            sx={{ fontWeight: "700" }}
+            autoFocus
+          >
             Close
           </Button>
         </DialogActions>
       </Dialog>
     </div>
+
   );
 };
 
