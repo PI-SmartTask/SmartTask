@@ -1,0 +1,5 @@
+Employees,Execution time, Minimuns left to be covered, shift balance
+Normal Case,1 seconds,35,48.54
++2 B team employees,1 seconds,16,48.59
++4 B team employees,1 seconds,0,48.04
++4 B team employees and +2 A team employees,5 seconds,2,48.63
