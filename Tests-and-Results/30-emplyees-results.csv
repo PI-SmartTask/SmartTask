@@ -1,0 +1,5 @@
+Algorithm,Execution time, Minimuns left to be covered, shift balance, Two Teams level preference
+ILP,17 s,376, 39.91%, 100%
+Hill Climbing,Not suitable to analyse ,1015,33.23%, 0%
+Greedy Randomized,Not suitable to analyse ,372, 45.75%, 62.18%
+Greedy Randomized wiht Hill Climbing,Not suitable to analyse ,362, 45.11%, 62.72
